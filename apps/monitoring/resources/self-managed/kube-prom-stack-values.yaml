@@ -119,7 +119,7 @@ alertmanager:
     - name: 'null'
     - name: default-receiver
       email_configs:
-      - to: 'cloud-support@stfc.ac.uk'
+      - to: 'anish.mudaraddi@stfc.ac.uk'
         send_resolved: true
         headers:
           subject: "({{ .CommonLabels.env }} : {{ .CommonLabels.cluster }}) {{ .Status | toUpper }} {{ .CommonLabels.alertname }}"
