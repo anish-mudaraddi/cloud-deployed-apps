@@ -1,0 +1,106 @@
+replicaCount: 1
+posteeConfig: |
+
+  # The configuration file contains a general settings section,
+  # routes, templates and actions sections.
+
+  name: tenant            #  The tenant name
+  aqua-server:            #  URL of Aqua Server for links. E.g. https://myserver.aquasec.com
+  max-db-size: 1000MB       #  Max size of DB. <numbers><unit suffix> pattern is used, such as "300MB" or "1GB". If empty or 0 then unlimited
+  db-verify-interval: 1   #  How often to check the DB size. By default, Postee checks every 1 hour
+
+  # Routes are used to define how to handle an incoming message
+  routes:
+  - name: stdout
+    #actions: [ post-vulnerabilities ]
+    input: contains(input.kind, "VulnerabilityReport")
+    actions: [post-to-opensearch]
+    template: raw-json
+
+  templates:
+  - name: raw-json                        # route message "As Is" to external webhook
+    rego-package: postee.rawmessage.json
+
+  # Rules are predefined rego policies that can be used to trigger routes
+  rules:
+  - name: Initial Access
+  - name: Credential Access
+  - name: Privilege Escalation
+  - name: Defense Evasion
+  - name: Persistence
+
+  # Actions are target services that should consume the messages
+  actions:
+  - name: stdout
+    type: stdout
+    enable: true
+
+  - name: post-to-opensearch
+    type: exec
+    enable: true
+    env: 
+    - name: OPENSEARCH_HOST
+      value: "https://opensearch.stfc.ac.uk:9200"
+    - name: USERNAME
+      valueFrom:
+        secretKeyRef: 
+          name: opensearch-credentials-secret
+          key: opensearch-user
+    - name: PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: opensearch-credentials-secret
+          key: opensearch-pass
+    - name: INDEX_NAME
+      value: trivy-{{ .Values.global.env }}-{{ .Values.global.clusterName }}
+    exec-script: |
+      #!/bin/sh
+
+      # Get current date in the format YYYY-MM-DD
+      index_name="$INDEX_NAME-$(date +'%Y-%m-%d')"
+
+      # Create a temporary file for the bulk request
+      bulk_request="./bulk_request.json"
+
+      artifact=$(echo "$POSTEE_EVENT" | jq -c '.report.artifact')
+      os=$(echo "$POSTEE_EVENT"  | jq -c '.report.os')
+      scanner=$(echo "$POSTEE_EVENT"  | jq -c '.report.scanner')
+      timestamp=$(echo "$POSTEE_EVENT" | jq -c '.metadata.creationTimestamp')
+      metadata=$(echo "$POSTEE_EVENT" | jq -c '.metadata.labels')
+
+      # Extract report field and its content
+      echo "$POSTEE_EVENT"  | jq -c '.report' | \
+
+      # Process each vulnerability
+      jq -c '.vulnerabilities[]' | \
+
+      while IFS= read -r vulnerability; do
+        parsed_vuln=$( echo "$vulnerability" | jq -c '.lastModifiedDate |= if . == "" then null else . end' |  jq -c '.publishedDate |= if . == "" then null else . end')
+        id=$(echo "$parsed_vuln" | md5sum | cut -d ' ' -f1)
+        echo "{ \"index\": {\"_index\":\"$index_name\", \"_id\": \"$id\"} }" >> "$bulk_request"
+        # Append document body with timestamp and vulnerability
+        echo "{ \"metadata\": $metadata, \"vulnerability\": $parsed_vuln, \"artifact\": $artifact, \"os\": $os, \"scanner\": $scanner, \"timestamp\": $timestamp }" >> $bulk_request
+      done
+
+      # Send the formatted data to the OpenSearch _bulk endpoint
+      curl -s -XPOST -u "$USERNAME:$PASSWORD" -H "Content-Type: application/json" "$OPENSEARCH_HOST/_bulk" --data-binary @"$bulk_request" --insecure
+
+      # Clean up temporary file
+      rm $bulk_request
+
+posteUi:
+  port: 8000
+  existingSecret:
+    enabled: true
+    secretName: postee-creds
+    usernameKey: username
+    passwordKey: password
+
+service:
+  type: ClusterIP
+
+uiService:
+  type: ClusterIP
+
+ingress:
+  enabled: false

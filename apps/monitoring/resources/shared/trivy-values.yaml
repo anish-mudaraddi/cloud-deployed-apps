@@ -1,0 +1,9 @@
+operator:
+  # -- webhookBroadcastURL the flag to set reports should be sent to a webhook endpoint. "" means that the webhookBroadcastURL feature is disabled
+  webhookBroadcastURL: "http://postee.trivy-system.svc.cluster.local:8082"
+
+  # -- webhookBroadcastTimeout the flag to set timeout for webhook requests if webhookBroadcastURL is enabled
+  webhookBroadcastTimeout: 30s
+
+  # -- webhookSendDeletedReports the flag to enable sending deleted reports if webhookBroadcastURL is enabled
+  webhookSendDeletedReports: false

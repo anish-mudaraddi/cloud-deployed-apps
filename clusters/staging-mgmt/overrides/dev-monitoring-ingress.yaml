@@ -1,0 +1,14 @@
+alertmanager:
+  ingress:
+    hosts:
+      - "dev-alertmanager.stfc.ac.uk"
+
+grafana:
+  ingress:
+    hosts:
+      - "dev-grafana.stfc.ac.uk"
+
+prometheus:
+  ingress:
+    hosts:
+      - "dev-prometheus.stfc.ac.uk"

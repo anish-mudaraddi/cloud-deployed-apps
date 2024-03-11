@@ -1,0 +1,5 @@
+global:
+  clusterName: staging-mgmt
+  clusterType: self-managed
+  env: dev
+  

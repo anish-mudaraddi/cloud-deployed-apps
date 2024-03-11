@@ -1,0 +1,203 @@
+namespaceOverride: "monitoring"
+
+defaultRules:
+  additionalRuleLabels:
+    "cluster": "{{.Values.global.clusterName}}"
+    "env": "{{.Values.global.env}}"
+
+alertmanager:
+  ## Alertmanager configuration directives
+  ## ref: https://prometheus.io/docs/alerting/configuration/#configuration-file
+  ##      https://prometheus.io/webtools/alerting/routing-tree-editor/
+  
+  # TODO: move this into overrides for each cluster
+  ingress:
+    ingressClassName: nginx
+    enabled: true
+    hosts:
+      - "alertmanager.stfc.ac.uk"
+    paths:
+      - "/"
+    tls: []:
+    ingressPerReplica:
+      enabled: false
+
+  service:
+    type: ClusterIP
+  
+  config:
+    global:
+      resolve_timeout: 5m
+       # The smarthost and SMTP sender used for mail notifications.
+       
+      smtp_smarthost: 
+        secretKeyRef:
+          name: alertmanager-email-config
+          key: smtp_server
+      
+      smtp_from: 
+        secretKeyRef:
+          name: alertmanager-email-config
+          key: smtp_from
+
+      # we probably don't want to advertise this
+      smtp_require_tls: false
+
+    # The root route on which each incoming alert enters.
+    route:
+      # The labels by which incoming alerts are grouped together. For example,
+      # multiple alerts coming in for cluster=A and alertname=LatencyHigh would
+      # be batched into a single group.
+      #
+      # To aggregate by all possible labels use '...' as the sole label name.
+      # This effectively disables aggregation entirely, passing through all
+      # alerts as-is. This is unlikely to be what you want, unless you have
+      # a very low alert volume or your upstream notification system performs
+      # its own grouping. Example: group_by: [...]
+      group_by: ['cluster', 'service']
+
+      # When a new group of alerts is created by an incoming alert, wait at
+      # least 'group_wait' to send the initial notification.
+      # This way ensures that you get multiple alerts for the same group that start
+      # firing shortly after another are batched together on the first
+      # notification.
+      group_wait: 5m
+
+      # When the first notification was sent, wait 'group_interval' to send a batch
+      # of new alerts that started firing for that group.
+      group_interval: 15m
+
+      # If an alert has successfully been sent, wait 'repeat_interval' to
+      # resend them.
+      repeat_interval: 2d
+
+      # A default receiver
+      receiver: 'null'
+
+      # All the above attributes are inherited by all child routes and can
+      # overwritten on each.
+
+      # The child route trees.
+      routes:
+        - receiver: 'null'
+          matchers:
+          - alertname = "Watchdog"
+        - receiver: default-receiver
+          matchers:
+          - severity=~"critical|warning"
+
+    # Inhibition rules allow to mute a set of alerts given that another alert is
+    # firing.
+    # We use this to mute any warning-level notifications if the same alert is
+    # already critical.
+    inhibit_rules:
+      - source_matchers: [severity="critical"]
+        target_matchers: [severity="warning"]
+        # Apply inhibition if the alertname is the same.
+        # CAUTION:
+        #   If all label names listed in `equal` are missing
+        #   from both the source and target alerts,
+        #   the inhibition rule will apply!
+        equal: [alertname, cluster, service]
+
+      - source_matchers:
+          - 'severity = warning'
+        target_matchers:
+          - 'severity = info'
+        equal: [alertname, cluster, service]
+
+      - source_matchers:
+          - 'alertname = InfoInhibitor'
+        target_matchers:
+          - 'severity = info'
+        equal: ['namespace']
+
+      - target_matchers:
+          - 'alertname = InfoInhibitor'
+
+    receivers:
+    - name: 'null'
+    - name: default-receiver
+      email_configs:
+      - to: 'cloud-support@stfc.ac.uk'
+        send_resolved: true
+        headers:
+          subject: "({{ .CommonLabels.env }} : {{ .CommonLabels.cluster }}) {{ .Status | toUpper }} {{ .CommonLabels.alertname }}"
+        html: |-
+          <h3>You have the following alerts:</h3>
+          {{ range .Alerts }}
+          <p><b>{{.Labels.alertname}}</b>
+            <ul>{{ range .Annotations.SortedPairs }}
+            <li>{{ .Name }} = {{ .Value }}</li>
+            {{ end }}</ul>
+            <ul>{{ range .Labels.SortedPairs }}
+            <li>{{ .Name }} = {{ .Value }}</li>
+            {{ end }}</ul>
+            {{ .GeneratorURL }}</p>
+          {{ end }}
+
+        text: |-
+          You have the following alerts:
+          {{ range .Alerts }}
+          * {{.Labels.alertname}}
+            {{ range .Annotations.SortedPairs }}
+            {{ .Name }} = {{ .Value }}
+            {{ end }}
+            {{ range .Labels.SortedPairs }}
+            {{ .Name }} = {{ .Value }}
+            {{ end }}
+            {{ .GeneratorURL }}
+          {{ end }}
+
+    templates:
+      - '/etc/alertmanager/config/*.tmpl'
+
+
+grafana:
+  enabled: true
+  admin:
+    existingSecret: credentials-secret
+    userKey: mgmt-user
+    passwordKey: mgmt-password
+
+  service:
+    type: ClusterIP
+
+  ingress:
+    ingressClassName: nginx
+    enabled: true
+    hosts:
+      - k8s-grafana.stfc.ac.uk
+    path: /
+    tls: []
+
+prometheus-operator:
+  enabled: true
+
+prometheus:
+  enabled: true
+
+#  prometheus ingress
+  ingress:
+    ingressClassName: nginx
+    enabled: true
+    hosts:
+      - prometheus.stfc.ac.uk
+    paths:
+      - /
+    tls: []
+
+  service:
+    type: ClusterIP
+
+# thanos service discovery on sidecar
+thanosService:
+  enabled: false
+
+# thanos scrape metrics on sidecar
+thanosServiceMonitor:
+  enabled: false
+
+# thanos access on sidecar
+thanosServiceExternal:
+  enabled: false

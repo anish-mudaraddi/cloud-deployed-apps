@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: postee
+  namespace: argocd
+spec:
+  project: default
+  sources:
+  - repoURL: 'https://github.com/aquasecurity/postee.git'
+    path: deploy/helm/postee
+    targetRevision: v2.14.0
+    helm:
+      valueFiles:
+      - ../resources/shared/postee-values.yaml
+  - repoURL: 'https://github.com/anish-mudaraddi/cloud-deployed-apps.git'
+    targetRevision: "main"
+    ref: values
+  destination:
+    server: "https://kubernetes.default.svc"
+    namespace: trivy-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

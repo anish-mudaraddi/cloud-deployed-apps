@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cluster-apps
+spec:
+  generators:
+  - git:
+    repoURL: https://github.com/anish-mudaraddi/cloud-deployed-apps.git
+    revision: HEAD
+    files:
+    - path: clusters/{{clusterName}}/apps.yaml
+  template:
+    spec:
+      project: default
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: argocd
+      source:
+        - repoURL: 'https://github.com/anish-mudaraddi/cloud-deployed-apps.git'
+          targetRevision: HEAD
+          path: '{{path}}'
+        - repoURL: 'https://github.com/anish-mudaraddi/cloud-deployed-apps.git'
+          targetRevision: HEAD
+          path: clusters/{{clusterName}}/values.yaml
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
