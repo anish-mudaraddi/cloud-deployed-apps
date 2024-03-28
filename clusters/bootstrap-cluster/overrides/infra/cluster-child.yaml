@@ -1,0 +1,6 @@
+
+openstack-cluster:
+
+  # you must provide this for it to work
+  # we're using parent credentials to spin up child cluster here
+  cloudCredentialsSecretName: bootstrap-cluster-cloud-credentials
