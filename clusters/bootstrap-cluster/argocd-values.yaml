@@ -1,10 +1,13 @@
 # PUT values related to argocd here
 
 argo-cd:
+  global:
+    domain: argocd.example.io
 # place values here 
 # see chart in https://github.com/argoproj/argo-helm/tree/main/charts/argo-cd
 
 # e.g. change domain name
 # uncomment lines below
+# argo-cd:
 #  global:
 #    domain: argocd.example.io
