@@ -50,25 +50,3 @@ infra:
     # (optional) can define the git SHA to sync against specific to the app
     # This overrides global.spec.targetRevision
     # targetRevision: main
-
-  # below is an example of how to have argocd manage a child cluster
-  # this will automatically spin up a child cluster so you don't need to have one already made
-  - name: child-cluster
-
-    # when true, will disable auto-sync and auto-heal on the argocd app
-    disableAutomated: false
-
-    # name of the chart to install - corresponds with chart name in charts/infra/
-    chartName: capi
-
-    # namespace where the chart contents will be installed to
-    namespace: clusters
-
-    # a list of filepaths to cluster-specific values for a given chart
-    # overrides defaults set in .valueFiles for that chart
-    additionalValueFiles: 
-      - clusters/bootstrap-cluster/overrides/infra/cluster-child.yaml
-
-    # (optional) can define the git SHA to sync against specific to the app
-    # This overrides global.spec.targetRevision
-    # targetRevision: main
