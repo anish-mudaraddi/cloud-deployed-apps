@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cloud-deployed-apps
+  namespace: argocd
+spec:
+  destination:
+    namespace: {{ $.Values.global.namespace }}
+    server: https://kubernetes.default.svc
+  project: {{ $.Values.global.project }}
+  source:
+    repoURL: {{ $.Values.global.repoURL }}
+    targetRevision: {{ $.Values.global.targetRevision }}
+    path: charts/cloud-deployed-apps
+    helm:
+      valueFiles:
+        - $local_vals/charts/cloud-deployed-apps/values.yaml
+        - $local_vals/{{$.Values.global.environment}}/app-values.yaml
+        - $local_vals/{{$.Values.global.environment}}/envs/{{ $.Values.cluster.clusterName }}/app-values.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: true
+    syncOptions:
+      - CreateNamespace=true
+---

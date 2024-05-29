@@ -1,0 +1,55 @@
+controlPlane:
+  machineCount: 3
+
+nodeGroups:
+  - name: default-md-0
+    machineCount: 2
+
+nodeGroupDefaults:
+  machineFlavor: l3.nano
+
+cloudCredentialsSecretName: management-cloud-credentials
+
+addons:
+  ingress:
+    enabled: true
+    nginx:
+      release:
+        values:
+          controller:
+            service:
+              loadBalancerIP: "130.246.211.178"
+
+  monitoring:
+    kubePrometheusStack:
+      release:
+        values:
+          defaultRules:
+            additionalRuleLabels:
+              cluster: staging-management
+              env: dev
+          alertmanager:
+            enabled: true
+            ingress:
+              hosts:
+                - alertmanager-mgmt.staging.nubes.stfc.ac.uk
+              tls:
+                - hosts: 
+                  - alertmanager-mgmt.staging.nubes.stfc.ac.uk
+                  secretName: tls-keypair
+          prometheus:
+            ingress:
+              hosts:
+                - prometheus-mgmt.staging.nubes.stfc.ac.uk
+              tls:
+                - hosts: 
+                  - prometheus-mgmt.nubes.stfc.ac.uk
+                  secretName: tls-keypair
+          grafana:
+            ingress:
+              hosts:
+                - grafana-mgmt.staging.nubes.stfc.ac.uk
+              tls:
+                - hosts: 
+                  - grafana-mgmt.staging.nubes.stfc.ac.uk
+                  secretName: tls-keypair

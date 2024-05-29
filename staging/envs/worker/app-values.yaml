@@ -1,0 +1,22 @@
+cluster:
+  clusterName: worker
+  manager: false
+
+apps:
+  - name: longhorn
+    disableAutomated: false
+    chartName: longhorn
+    namespace: argocd
+    # can give chart info like so
+    # chartInfo: 
+    #   name: chart1
+    #   repo: repo1
+    #   version: version1
+
+    # can give additional values files like so:
+    # additionalValuesFiles:
+    #   - /configs/longhorn-values.yaml
+
+    # can specify additional values like so:
+    # additionalValues:
+    #   replicationPolicy: "bestEffort"

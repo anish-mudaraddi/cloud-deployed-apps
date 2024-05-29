@@ -1,0 +1,56 @@
+{{- if .Values.apps -}}
+{{- range $app := .Values.apps -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .name }}
+  namespace: argocd
+spec:
+  destination:
+    namespace: {{ .namespace }}
+    server: https://kubernetes.default.svc
+  project: {{ $.Values.global.project }}
+  sources:
+    # chart to read from
+    - repoURL: {{ default (index $.Values.appDefaults .chartName).chartRepo .chartRepo }}
+      targetRevision: {{ default (index $.Values.appDefaults .chartName).chartVersion .chartVersion }}
+      chart: {{ default (index $.Values.appDefaults $app.chartName).chartName .chartName }}
+{{- end }}
+      helm:
+        valueFiles:
+          {{- range $chartName, $filenames := $.Values.valueFiles }}
+          {{- if eq $chartName $app.chartName }}
+          {{- range $filename := $filenames }}
+          - $local_vals/{{ $.Values.global.environment }}/apps/{{ .name }}/{{ $filename }}
+          {{- end }}
+          {{- end }}
+          {{- end }}
+
+          {{- if .additionalValueFiles }}
+          {{- range $filename := .additionalValueFiles }}
+          - $local_vals/{{ $.Values.global.environment}}/envs/{{ $.Values.cluster.clusterName }}/{{ $filename }}
+          {{- end }}
+          {{- end }}
+        
+        {{- if .additionalValues }}
+        values:
+          {{- toYaml .additionalValues | indent 10 }}
+        {{ end }}
+
+    # values files to track 
+    - repoURL: {{ $.Values.global.repoURL }}
+      targetRevision: {{ default $.Values.global.targetRevision .targetRevision }}
+      ref: local_vals
+      
+  syncPolicy:
+    {{- if not .disableAutomated }}
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: true
+    {{- end }}
+    syncOptions:
+      - CreateNamespace=true
+---
+{{- end }}
+{{- end }}

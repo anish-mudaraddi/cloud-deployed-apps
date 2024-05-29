@@ -1,0 +1,77 @@
+{{- if .Values.cluster.manager -}}
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cluster-addons-app
+  namespace: argocd
+spec:
+  project: {{ $.Values.global.project }}
+  destination:
+    namespace: argocd
+    server: https://kubernetes.default.svc
+  source:
+    repoURL: https://stackhpc.github.io/cluster-api-addon-provider
+    chart: cluster-api-addon-provider
+    targetRevision: 0.5.6
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: true
+---
+
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cloud-deployed-infra
+  namespace: argocd
+spec:
+  generators:
+    - git:
+      repoURL: {{ $.Values.global.repoURL }}
+      targetRevision: {{ .Values.global.targetRevision }}
+      files:
+        # grab all infra values for all clusters in environment
+        - path: "{{ $.Values.global.environment}}/envs/*/infra-values.yaml"
+
+  project: {{ $.Values.global.spec.project }}
+  destination:
+    namespace: clusters
+    server: https://kubernetes.default.svc
+
+  template:
+    metadata:
+      name: "{{ path.basename }}-cluster"
+      # All applications need to go into the ArgoCD namespace
+      namespace: argocd
+    spec:
+      project: default
+      sources:
+        - chart: openstack-cluster
+          repoURL: https://stackhpc.github.io/capi-helm-charts
+          targetRevision: "0.6.0"
+          helm:
+            releaseName: "{{ path.basename }}-openstack-cluster"
+            valueFiles:
+              # Bring in default values
+              - "$capi-values/values.yaml"
+              - "$capi-values/flavors.yaml"
+              - "$capi-values/user-values.yaml"
+              # Bring in values that are specific to this application
+              - "$values/{{ path }}/{{ path.filename }}"
+        - repoURL: {{ $.Values.global.repoURL }}
+          targetRevision: {{ $.Values.global.targetRevision }}
+          ref: values
+        - repoURL: "https://github.com/stfc/cloud-capi-values.git"
+          targetRevision: "master"
+          ref: capi-values
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end -}}

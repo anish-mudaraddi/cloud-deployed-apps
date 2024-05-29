@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd
+spec:
+  destination:
+    namespace: argocd
+    server: https://kubernetes.default.svc
+  project: {{ $.Values.global.project }}
+  sources:
+    - repoURL: https://argoproj.github.io/argo-helm
+      targetRevision: 6.11.1
+      chart: argo-cd    
+      helm:
+        values:
+          {{- toYaml .Values.argocd | indent 10 }}
+    - repoURL: {{ $.Values.global.repoURL }}
+      targetRevision: {{ $.Values.global.targetRevision }}
+      ref: local_vals
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: true
+      
+    syncOptions:
+      - CreateNamespace=true
+---

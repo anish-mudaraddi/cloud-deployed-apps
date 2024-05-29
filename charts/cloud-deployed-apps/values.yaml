@@ -1,0 +1,65 @@
+global:
+    # argocd project to use
+    project: default
+
+    # specifies source repo 
+    # you'll only want to change this if you make a fork
+    repoURL: https://github.com/stfc/cloud-deployed-apps.git
+    
+    # default target revision to use - branch "main" by default
+    targetRevision: main
+      
+    # namespace where the argocd applications will be installed to 
+    namespace: argocd
+
+    # environment to use (prod/staging)
+    environment: unset
+
+cluster:
+  # cluster name
+  # MUST MATCH A DIRECTORY IN <prod and/or staging>/envs/<clusterName>
+  name: "unset"
+
+  # sets whether cluster is the management cluster
+  manager: false
+
+appDefaults:
+  longhorn:
+    valueFiles:
+      # in <ENVIRONMENT>/configs/
+      - longhorn-values.yaml
+    chartInfo:
+      chartRepo: "https://charts.longhorn.io"
+      chartVersion: "1.6.1"
+      chartName: "longhorn"
+
+
+# default argocd values
+argocd:
+  global:
+    domain: example.com
+
+  server:
+    ingress:
+      enabled: true
+      ingressClassName: nginx
+      annotations:
+        nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+        nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+        nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+      tls: true
+
+    certificate:
+      # -- Deploy a Certificate resource (requires cert-manager)
+      enabled: true
+      issuer:
+        kind: "ClusterIssuer"
+        # Certificate issuer name. Eg. `self-signed`, `letsencrypt-staging`, or `letsencrypt-prod``
+        # This is overriden per-cluster in the cluster's argo-values.yaml
+        name: "self-signed"
+
+# default cert-manager values
+cert-manager:
+  enabled: true
+  namespace: cert-manager
+

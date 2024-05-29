@@ -4,12 +4,19 @@ set -euo pipefail
 
 if [ -z "$1" ]; then
   echo "Please provide the cluster name as an argument."
-  echo "Usage: $0 <cluster-name>"
+  echo "Usage: $0 <cluster-name> <environment>"
+  exit 1
+fi
+
+if [ -z "$2" ]; then
+  echo "Please provide the environment as an argument (prod/staging)."
+  echo "Usage: $0 <cluster-name> <environment>"
   exit 1
 fi
 
 
 CLUSTER_NAME=$1
+ENVIRONMENT=$2
 
 echo "Adding the ArgoCD Helm repository..."
 helm repo add argo https://argoproj.github.io/argo-helm
@@ -38,10 +45,6 @@ if [ ! -f /usr/local/bin/argocd ]; then
 fi
 
 echo "Creating App of Apps for cluster $CLUSTER_NAME..."
-helm upgrade --install argocd-apps ../charts/argocd-apps -n argocd -f ../charts/argocd-apps/values.yaml -f ../clusters/$CLUSTER_NAME/app-values.yaml --wait
-
-if [ -f "../clusters/$CLUSTER_NAME/infra-values.yaml" ]; then
-  helm upgrade --install argocd-infra ../charts/argocd-infra -n argocd -f ../charts/argocd-infra/values.yaml -f ../clusters/$CLUSTER_NAME/infra-values.yaml  --wait
-fi
+helm upgrade --install cloud-deployed-apps ../charts/cloud-deployed-apps -n argocd -f ../charts/cloud-deployed-apps/values.yaml -f ../$ENVIORNMENT/app-values.yaml -f ../$ENVIRONMENT/envs/$CLUSTER_NAME/app-values.yaml --wait
 
 echo "ArgoCD installation and configuration completed for cluster $CLUSTER_NAME."
