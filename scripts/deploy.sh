@@ -45,6 +45,6 @@ if [ ! -f /usr/local/bin/argocd ]; then
 fi
 
 echo "Creating App of Apps for cluster $CLUSTER_NAME..."
-helm upgrade --install cloud-deployed-apps ../charts/cloud-deployed-apps -n argocd -f ../charts/cloud-deployed-apps/values.yaml -f ../$ENVIORNMENT/app-values.yaml -f ../$ENVIRONMENT/envs/$CLUSTER_NAME/app-values.yaml --wait
+helm upgrade --install cloud-deployed-apps ../charts/cloud-deployed-apps -n argocd -f ../charts/cloud-deployed-apps/values.yaml -f ../$ENVIRONMENT/app-values.yaml -f ../$ENVIRONMENT/envs/$CLUSTER_NAME/app-values.yaml --wait
 
 echo "ArgoCD installation and configuration completed for cluster $CLUSTER_NAME."
