@@ -1,0 +1,17 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: longhorn
+  namespace: argocd
+spec:
+  project: default
+  sources:
+    - repoURL: https://charts.longhorn.io
+      chart: longhorn
+      targetRevision: "1.6.1"
+      helm:
+        valueFiles:
+          - $local_vals/ENVIRONMENT/components/longhorn/values.yaml
+    - repoURL: "https://github.com/DavidFair/cloud-deployed-apps.git"
+      targetRevision: "prototype_folder_flows"
+      ref: local_vals

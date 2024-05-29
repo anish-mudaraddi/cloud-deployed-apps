@@ -1,0 +1,69 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../components/argocd
+  - ../../components/cloud-deployed-app
+components:
+  - ../../components/capi-addons
+  - ../../components/cloud-deployed-infra
+  - ../../components/longhorn
+
+configMapGenerator:
+- name: env-config
+  namespace: argocd
+  literals:
+  - ENVIRONMENT=staging
+  - CLUSTERNAME=management
+
+replacements:
+- source:
+    kind: ConfigMap
+    name: env-config
+    namespace: argocd
+    fieldPath: data.ENVIRONMENT
+  targets:
+  - select:
+      kind: Application
+      name: cloud-deployed-app
+    fieldPaths:
+    - spec.source.path
+    options:
+      delimiter: '/'
+      index: 0
+  - select:
+      kind: Application
+      namespace: argocd
+    reject:
+      # need to add more that don't have any values.yaml entries
+      # or those with only one path
+      - name: cloud-deployed-app
+      - name: cluster-addons-app
+      - name: argocd
+    fieldPaths:
+    - spec.sources.*.helm.valueFiles.*
+    options:
+      delimiter: '/'
+      index: 1
+  - select:
+      kind: ApplicationSet
+      name: cloud-deployed-infra
+    fieldPaths:
+    - spec.generators.*.git.files.*.path
+    options:
+      delimiter: '/'
+      index: 0
+- source:
+    kind: ConfigMap
+    name: env-config
+    namespace: argocd
+    fieldPath: data.CLUSTERNAME
+  targets:
+  - select:
+      kind: Application
+      name: cloud-deployed-app
+    fieldPaths:
+    - spec.source.path
+    options:
+      delimiter: '/'
+      index: 2

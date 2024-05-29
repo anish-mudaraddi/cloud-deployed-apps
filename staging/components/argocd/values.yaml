@@ -1,0 +1,25 @@
+global:
+  domain: example.com
+
+server:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    tls: true
+
+  certificate:
+    # -- Deploy a Certificate resource (requires cert-manager)
+    enabled: true
+    issuer:
+      kind: "ClusterIssuer"
+      # Certificate issuer name. Eg. `self-signed`, `letsencrypt-staging`, or `letsencrypt-prod``
+      # This is overriden per-cluster in the cluster's argo-values.yaml
+      name: "self-signed"
+
+configs:
+  cm:
+    kustomize.buildOptions: "--enable-alpha-plugins --enable-exec"
