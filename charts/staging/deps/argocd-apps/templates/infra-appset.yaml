@@ -34,7 +34,7 @@ spec:
           repoURL: https://stackhpc.github.io/capi-helm-charts
           targetRevision: "0.6.0"
           helm:
-            releaseName: '{{"{{"}}path.basename{{"}}"}}-openstack-cluster'
+            releaseName: '{{"{{"}}path.basename{{"}}"}}'
             valueFiles:
               # Bring in default values
               - "$capi-values/values.yaml"
