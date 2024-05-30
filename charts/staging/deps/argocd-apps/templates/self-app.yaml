@@ -11,7 +11,7 @@ spec:
   source:
     repoURL: {{ $.Values.global.repoURL }}
     targetRevision: {{ $.Values.global.targetRevision }}
-    path: charts/deps/argocd-apps
+    path: charts/{{ $.Values.global.environment }}/deps/argocd-apps
     helm:
       valueFiles:
         - charts/{{ $.Values.global.environment }}/deps/argocd-apps/values.yaml
