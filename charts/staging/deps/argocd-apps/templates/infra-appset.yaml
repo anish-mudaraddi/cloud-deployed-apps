@@ -21,7 +21,7 @@ spec:
 
   template:
     metadata:
-      name: '{{"{{"}}.path.basename{{"}}"}}-cluster'
+      name: '{{"{{"}}path.basename{{"}}"}}-cluster'
       # All applications need to go into the ArgoCD namespace
       namespace: argocd
     spec:
@@ -34,14 +34,14 @@ spec:
           repoURL: https://stackhpc.github.io/capi-helm-charts
           targetRevision: "0.6.0"
           helm:
-            releaseName: '{{"{{"}}.path.basename{{"}}"}}-openstack-cluster'
+            releaseName: '{{"{{"}}path.basename{{"}}"}}-openstack-cluster'
             valueFiles:
               # Bring in default values
               - "$capi-values/values.yaml"
               - "$capi-values/flavors.yaml"
               - "$capi-values/user-values.yaml"
               # Bring in values that are specific to this application
-              - '$values/{{"{{"}}.path{{"}}"}}/{{"{{"}}.path.filename{{"}}"}}'
+              - '$values/{{"{{"}}path{{"}}"}}/{{"{{"}}path.filename{{"}}"}}'
         - repoURL: {{ $.Values.global.repoURL }}
           targetRevision: {{ $.Values.global.targetRevision }}
           ref: values
