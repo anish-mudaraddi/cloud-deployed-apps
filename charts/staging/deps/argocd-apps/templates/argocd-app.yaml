@@ -14,6 +14,8 @@ spec:
     path: charts/{{ $.Values.global.environment }}/deps/argocd
     {{- if (index $.Values "argo-cd") }}
     helm:
+      valueFiles:
+        - ./values.yaml
       values: |
 {{ toYaml (index $.Values "argo-cd") | indent 8 }}
     {{- end }}

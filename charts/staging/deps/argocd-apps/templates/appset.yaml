@@ -28,7 +28,7 @@ spec:
         path: charts/{{ $.Values.global.environment }}/apps/{{"{{"}}chartName{{"}}"}}
         helm:
           valueFiles:
-            - envs/{{ $.Values.global.environment}}/{{ $.Values.cluster.clusterName }}/{{"{{"}}valuesFile{{"}}"}}
+            - ../../../envs/{{ $.Values.global.environment}}/{{ $.Values.cluster.clusterName }}/{{"{{"}}valuesFile{{"}}"}}
     
   syncPolicy:
     {{- if not .disableAutomated }}

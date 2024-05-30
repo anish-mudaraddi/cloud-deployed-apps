@@ -14,9 +14,9 @@ spec:
     path: charts/{{ $.Values.global.environment }}/deps/argocd-apps
     helm:
       valueFiles:
-        - charts/{{ $.Values.global.environment }}/deps/argocd-apps/values.yaml
-        - envs/{{ $.Values.global.environment }}/app-values.yaml
-        - envs/{{ $.Values.global.environment }}/{{ $.Values.clusterName }}/app-values.yaml
+        - ./values.yaml
+        - ../../../envs/{{ $.Values.global.environment }}/app-values.yaml
+        - ../../../envs/{{ $.Values.global.environment }}/{{ $.Values.clusterName }}/app-values.yaml
   syncPolicy:
     automated:
       prune: true
