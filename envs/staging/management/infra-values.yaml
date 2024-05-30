@@ -12,7 +12,13 @@ cloudCredentialsSecretName: management-cloud-credentials
 
 addons:
   ingress:
-    enabled: false
+    enabled: true
+    nginx:
+      release:
+        values:
+          controller:
+            service:
+              loadBalancerIP: "130.246.80.38"
 
   monitoring:
     kubePrometheusStack:
