@@ -7,7 +7,7 @@ metadata:
 spec:
   project: {{ $.Values.global.project }}
   destination:
-    namespace: argocd
+    namespace: clusters
     server: https://kubernetes.default.svc
   source:
     repoURL: {{ $.Values.global.repoURL }}
