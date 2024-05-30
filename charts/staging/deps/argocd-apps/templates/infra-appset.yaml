@@ -28,7 +28,7 @@ spec:
       project: {{ $.Values.global.project }}
       destination:
         namespace: clusters
-        server: https://kuberentes.default.svc
+        server: https://kubernetes.default.svc
       sources:
         - chart: openstack-cluster
           repoURL: https://stackhpc.github.io/capi-helm-charts

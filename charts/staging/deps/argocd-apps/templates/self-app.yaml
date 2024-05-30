@@ -15,8 +15,8 @@ spec:
     helm:
       valueFiles:
         - ./values.yaml
-        - ../../../envs/{{ $.Values.global.environment }}/app-values.yaml
-        - ../../../envs/{{ $.Values.global.environment }}/{{ $.Values.clusterName }}/app-values.yaml
+        - ../../../../envs/{{ $.Values.global.environment }}/app-values.yaml
+        - ../../../../envs/{{ $.Values.global.environment }}/{{ $.Values.clusterName }}/app-values.yaml
   syncPolicy:
     automated:
       prune: true
