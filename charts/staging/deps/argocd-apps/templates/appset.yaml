@@ -1,0 +1,42 @@
+{{- if .Values.apps -}}
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cloud-deployed-apps
+  namespace: argocd
+spec: 
+  generators:
+    - list:
+        elements: 
+        {{- toYaml .Values.apps | indent 10 }}
+  project: {{ $.Values.global.project }}
+  destination:
+    namespace: argocd
+    server: https://kubernetes.default.svc
+
+  template:
+    metadata:
+      name: '{{"{{"}}appName{{"}}"}}'
+      # All applications need to go into the ArgoCD namespace
+      namespace: argocd
+    spec:
+      project: {{ $.Values.global.project }}
+      source:
+        # chart to read from
+        repoURL: {{ $.Values.global.repoURL }}
+        targetRevision: {{ $.Values.global.targetRevision }}
+        path: charts/{{ $.Values.global.environment }}/apps/{{"{{"}}chartName{{"}}"}}
+        helm:
+          valueFiles:
+            - envs/{{ $.Values.global.environment}}/{{ $.Values.cluster.clusterName }}/{{"{{"}}valuesFile{{"}}"}}
+    
+  syncPolicy:
+    {{- if not .disableAutomated }}
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: true
+    {{- end }}
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}

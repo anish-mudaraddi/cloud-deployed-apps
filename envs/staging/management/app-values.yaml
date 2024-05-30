@@ -1,0 +1,6 @@
+clusterName: management
+manager: true
+
+argo-cd:
+  global:
+    domain: argocd-mgmt.staging.nubes.stfc.ac.uk

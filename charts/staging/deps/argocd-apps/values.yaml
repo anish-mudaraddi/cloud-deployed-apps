@@ -1,0 +1,10 @@
+global:
+  repoURL: https://github.com/anish-mudaraddi/cloud-deployed-apps
+  targetRevision: folder-based-refactor
+  project: default
+
+manager: false
+
+cert-manager:
+  enabled: true
+  namespace: cert-manager

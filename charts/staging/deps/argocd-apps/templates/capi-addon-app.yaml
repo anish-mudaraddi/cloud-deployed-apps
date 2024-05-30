@@ -1,0 +1,21 @@
+{{- if .Values.manager -}}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cluster-addons-app
+  namespace: argocd
+spec:
+  project: {{ $.Values.global.project }}
+  destination:
+    namespace: argocd
+    server: https://kubernetes.default.svc
+  source:
+    - repoURL: {{ $.Values.global.repoURL }}
+      targetRevision: {{ $.Values.global.targetRevision }}
+      path: charts/{{ $.Values.global.environment }}/deps/capi-addons
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: true
+{{- end -}}

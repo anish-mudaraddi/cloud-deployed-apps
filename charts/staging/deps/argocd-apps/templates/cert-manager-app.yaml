@@ -1,0 +1,30 @@
+{{- if ( index $.Values "cert-manager" "enabled" ) }}
+# This is deployed as a implicit dependency of the argocd-apps chart
+# as it can only be installed once per cluster
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+spec:
+  destination:
+    namespace: {{ index $.Values "cert-manager" "namespace" }}
+    server: https://kubernetes.default.svc
+  project: {{ $.Values.global.project }}
+  source:
+    repoURL: {{ $.Values.global.repoURL }}
+    targetRevision: {{ $.Values.global.targetRevision }}
+    path: charts/{{ $.Values.global.environment }}/deps/cert-manager
+    {{- if (index $.Values "cert-manager") }}
+    helm:
+      values: 
+{{ toYaml (index $.Values "cert-manager") | indent 8 }}
+    {{- end }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: true
+    syncOptions:
+      - CreateNamespace=true
+{{- end }}

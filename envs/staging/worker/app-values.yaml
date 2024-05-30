@@ -1,0 +1,9 @@
+clusterName: worker
+
+argo-cd:
+  global:
+    domain: argocd-worker.staging.nubes.stfc.ac.uk
+
+apps:
+  - name: longhorn
+    appName: longhorn
