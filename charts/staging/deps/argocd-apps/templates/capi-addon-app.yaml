@@ -10,9 +10,9 @@ spec:
     namespace: argocd
     server: https://kubernetes.default.svc
   source:
-    - repoURL: {{ $.Values.global.repoURL }}
-      targetRevision: {{ $.Values.global.targetRevision }}
-      path: charts/{{ $.Values.global.environment }}/deps/capi-addons
+    repoURL: {{ $.Values.global.repoURL }}
+    targetRevision: {{ $.Values.global.targetRevision }}
+    path: charts/{{ $.Values.global.environment }}/deps/capi-addons
   syncPolicy:
     automated:
       prune: true

@@ -17,7 +17,7 @@ spec:
     path: charts/{{ $.Values.global.environment }}/deps/cert-manager
     {{- if (index $.Values "cert-manager") }}
     helm:
-      values: 
+      values: |
 {{ toYaml (index $.Values "cert-manager") | indent 8 }}
     {{- end }}
   syncPolicy:

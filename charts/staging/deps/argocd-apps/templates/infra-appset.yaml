@@ -26,6 +26,9 @@ spec:
       namespace: argocd
     spec:
       project: {{ $.Values.global.project }}
+      destination:
+        namespace: clusters
+        server: https://kuberentes.default.svc
       sources:
         - chart: openstack-cluster
           repoURL: https://stackhpc.github.io/capi-helm-charts
