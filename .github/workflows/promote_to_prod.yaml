@@ -22,32 +22,23 @@ jobs:
           echo "branch_name=staging-to-prod-${{ steps.date.outputs.date }}" >> $GITHUB_OUTPUT
           echo "pr_title=Promote Staging to Prod - ${{ steps.date.outputs.date }}" >> $GITHUB_OUTPUT
 
-      - name: Create temporary copy for comparison
-        run: |
-          mkdir -p /tmp/compare
-          cp -r charts/prod /tmp/compare/
-
-      - name: Copy files
-        run: |
-          rm -rf charts/prod
-          cp -r charts/staging charts/prod
-
       - name: Check for changes
         id: check-changes
         run: |
-          if diff -r /tmp/compare charts/prod > /dev/null; then
+          if diff -r charts/staging charts/prod > /dev/null; then
             echo "changes_detected=false" >> $GITHUB_OUTPUT
           else
             echo "changes_detected=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Create promotion branch
-        if: steps.check-changes.outputs.changes_detected == 'true'
-        run: git checkout -b ${{ steps.env-vars.outputs.branch_name }}
-
       - name: Commit changes
         if: steps.check-changes.outputs.changes_detected == 'true'
         run: |
+          git checkout -b ${{ steps.env-vars.outputs.branch_name }}
+
+          rm -rf charts/prod
+          cp -r charts/staging charts/prod
+
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add charts/prod
