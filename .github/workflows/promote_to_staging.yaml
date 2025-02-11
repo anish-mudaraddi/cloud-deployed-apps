@@ -37,25 +37,21 @@ jobs:
           rm -rf charts/staging
           cp -r charts/dev charts/staging
 
-      - name: Commit changes
-        if: steps.check-changes.outputs.changes_detected == 'true'
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "${{ steps.env-vars.outputs.pr_title }}"
-          branch: "${{ steps.env-vars.outputs.branch_name }}"
-          create_branch: true
-
-      - name: Create Pull Request
+      - name: Commit and Create Pull Request
         if: steps.check-changes.outputs.changes_detected == 'true'
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "${{ steps.env-vars.outputs.pr_title }}"
+          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
+          branch: "${{ steps.env-vars.outputs.branch_name }}"
+          delete-branch: true
           title: ${{ steps.env-vars.outputs.pr_title }}
           body: |
             Automated promotion PR to copy contents from `dev` to `staging`.
             
             This PR was automatically created by the environment promotion workflow.
-          branch: ${{ steps.env-vars.outputs.branch_name }}
           base: main
           labels: |
             automated
