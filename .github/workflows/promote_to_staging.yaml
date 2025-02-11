@@ -22,32 +22,21 @@ jobs:
           echo "branch_name=dev-to-staging-${{ steps.date.outputs.date }}" >> $GITHUB_OUTPUT
           echo "pr_title=Promote Dev to Staging - ${{ steps.date.outputs.date }}" >> $GITHUB_OUTPUT
 
-      - name: Create temporary copy for comparison
-        run: |
-          mkdir -p /tmp/compare
-          cp -r charts/staging /tmp/compare/
-
-      - name: Copy files
-        run: |
-          rm -rf charts/staging
-          cp -r charts/dev charts/staging
-
       - name: Check for changes
         id: check-changes
         run: |
-          if diff -r /tmp/compare charts/staging > /dev/null; then
+          if diff -r charts/dev charts/staging > /dev/null; then
             echo "changes_detected=false" >> $GITHUB_OUTPUT
           else
             echo "changes_detected=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Create promotion branch
-        if: steps.check-changes.outputs.changes_detected == 'true'
-        run: git checkout -b ${{ steps.env-vars.outputs.branch_name }}
-
       - name: Commit changes
         if: steps.check-changes.outputs.changes_detected == 'true'
         run: |
+          git checkout -b ${{ steps.env-vars.outputs.branch_name }}
+          rm -rf charts/staging
+          cp -r charts/dev charts/staging
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add charts/staging
