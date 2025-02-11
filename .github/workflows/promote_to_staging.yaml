@@ -24,8 +24,8 @@ jobs:
 
       - name: Create temporary copy for comparison
         run: |
-          mkdir -p temp_compare
-          cp -r charts/staging temp_compare/
+          mkdir -p /tmp/compare
+          cp -r charts/staging /tmp/compare/
 
       - name: Copy files
         run: |
@@ -35,7 +35,7 @@ jobs:
       - name: Check for changes
         id: check-changes
         run: |
-          if diff -r temp_compare/staging charts/staging > /dev/null; then
+          if diff -r /tmp/compare charts/staging > /dev/null; then
             echo "changes_detected=false" >> $GITHUB_OUTPUT
           else
             echo "changes_detected=true" >> $GITHUB_OUTPUT
