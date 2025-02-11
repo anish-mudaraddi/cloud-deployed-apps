@@ -31,7 +31,7 @@ jobs:
             echo "changes_detected=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Commit changes
+      - name: Commit and Push Changes
         if: steps.check-changes.outputs.changes_detected == 'true'
         run: |
           git checkout -b ${{ steps.env-vars.outputs.branch_name }}
@@ -41,10 +41,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add charts/staging
           git commit -m "${{ steps.env-vars.outputs.pr_title }}"
-
-      - name: Push changes
-        if: steps.check-changes.outputs.changes_detected == 'true'
-        run: git push origin ${{ steps.env-vars.outputs.branch_name }}
+          git push origin ${{ steps.env-vars.outputs.branch_name }}
 
       - name: Create Pull Request
         if: steps.check-changes.outputs.changes_detected == 'true'
